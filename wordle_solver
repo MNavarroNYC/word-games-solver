@@ -1,0 +1,109 @@
+#04-01-2022 (C) MNavarro
+#A program that suggests words to solve the NYT's daily Wordle
+
+import json
+file_name = "words.txt"                #string of the file name of the dictionary
+usable_words = []                      #list of all 5 letter words
+bad_letters = []                       #letters that are not in the wordle
+
+#parses the text file to get a list of all of the english words
+def get_usable_words():
+  word_dict = []
+  with open(file_name) as words:
+    lines = words.readlines()
+    for word in lines:
+      if "\n" in word:
+        word = word.replace("\n", "")
+      word_dict.append(word)
+  for word in word_dict:
+    if len(word) == 5:
+      usable_words.append(word)
+
+#takes in a list of letters and returns list of words that matches the letters
+def get_word_suggestion(letters):
+  result = []
+  eligible_words = []
+  for word in usable_words:
+    matches_letters = True
+    for letter in letters:
+      if letter not in word and letter != '':
+        matches_letters = False
+    if matches_letters:
+      eligible_words.append(word)
+  for word in eligible_words:
+    letters_match_word = True
+    for count in range(0, len(letters)):
+      list_letter = letters[count]
+      word_letter = word[count]
+      if word_letter != list_letter and list_letter != '':
+        letters_match_word = False
+    if letters_match_word:
+      result.append(word)
+  return result
+
+#filters out letters inputed and returns the list
+def filter_out_letters(letters, words):
+  result = []
+  for word in words:
+    is_usable = True
+    for letter in letters:
+      if letter in word:
+        is_usable = False
+    if is_usable:
+      result.append(word)
+  return result
+
+#hones in search to words that match the correct letters in a list
+def hone_in_search(letters, words):
+  result = []
+  for word in words:
+    is_usable = True
+    for i in range(0, 4):
+      word_letter = word[i]
+      letters_letter = letters[i]
+      if word_letter != letters_letter and letters_letter != "$":
+        is_usable = False
+    if is_usable:
+      result.append(word)
+  return result
+
+#runs the entire program
+def run():
+  #text prompts to direct the user on how to use the program
+  intro = "To use the Wordle Solver, please first enter \"ADIEU\" into the game. After that please enter the words you guess LETTER BY LETTER. After entering each letter of the word press the ENTER key."
+  enter_bad_letter = "Please enter a letter that's not in the word: "
+  enter_solved_letter_intro = "Please enter any letters that are correct and in the correct location in the order it appears with a \"$\" for the rest. An example would be for a word with correct letter StoMp is \"S $ $ M $\" make sure to enter it LETTER BY LETTER and hit enter when you are done. "
+  enter_correct_letter = "Please enter a letter that is correct and solved: "
+
+  print(start_barrier)
+  print(intro)
+  get_usable_words()
+  solved_letters = ["$", "$", "$", "$", "$"]
+  for i in range(0, 5):
+
+    #removes bad letters
+    new_bad_letter = "$"
+    while new_bad_letter != "":
+      new_bad_letter = input(enter_bad_letter)
+      new_bad_letter.lower()
+      if new_bad_letter != "":
+        bad_letters.append(new_bad_letter)
+
+    #hones in search with correct letters in correct places
+    print(enter_solved_letter_intro)
+    new_solved_letter = "$"
+    solved_letter_count = 0
+    while solved_letter_count < 5:
+      new_solved_letter = input(enter_correct_letter)
+      new_solved_letter.lower()
+      solved_letters[solved_letter_count] = new_solved_letter
+      solved_letter_count += 1
+
+    #first filters out based on correct letters then bad letters
+    honed_search = hone_in_search(solved_letters, usable_words)
+    result = filter_out_letters(bad_letters, honed_search)
+    print(result)
+
+  print(end_barrier)
+
+run()
